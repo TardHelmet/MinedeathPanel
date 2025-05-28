@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minedeath Game Control</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            color: #ffffff;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 350px;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            border-right: 2px solid #ff6b35;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .header {
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid #333;
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            color: #000;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        /* Progress Bar Section */
+        .progress-section {
+            padding: 20px;
+            border-bottom: 1px solid #333;
+            background: rgba(255, 107, 53, 0.1);
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .progress-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #ff6b35;
+        }
+
+        .countdown {
+            font-size: 14px;
+            color: #ffd700;
+            font-weight: bold;
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 30px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+            border: 2px solid #444;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff41, #00b32d);
+            width: 0%;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .progress-bar.overflow {
+            background: linear-gradient(90deg, #ff6b35, #ffd700);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .progress-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 12px;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+        }
+
+        .multiplier {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 14px;
+            color: #ffd700;
+            font-weight: bold;
+        }
+
+        /* Actions Section */
+        .actions-section {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #ff6b35;
+            text-align: center;
+        }
+
+        .actions-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .action-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #333;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .action-item:hover {
+            background: rgba(255, 107, 53, 0.2);
+            border-color: #ff6b35;
+            transform: translateY(-2px);
+        }
+
+        .action-item.bits {
+            border-left: 4px solid #9146ff;
+        }
+
+        .action-item.points {
+            border-left: 4px solid #00ff41;
+        }
+
+        .action-name {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .action-cost {
+            font-size: 14px;
+            color: #ffd700;
+            font-weight: bold;
+        }
+
+        .action-description {
+            font-size: 12px;
+            color: #ccc;
+            margin-top: 5px;
+        }
+
+        /* Activity Feed */
+        .activity-section {
+            height: 200px;
+            border-top: 1px solid #333;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .activity-header {
+            padding: 15px 20px 10px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #ff6b35;
+            text-align: center;
+        }
+
+        .activity-feed {
+            height: 150px;
+            overflow-y: auto;
+            padding: 0 20px 15px;
+        }
+
+        .activity-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            border-left: 3px solid #9146ff;
+            font-size: 12px;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .activity-user {
+            font-weight: bold;
+            color: #ffd700;
+        }
+
+        .activity-action {
+            color: #ff6b35;
+            font-weight: bold;
+        }
+
+        .activity-cost {
+            color: #9146ff;
+            font-weight: bold;
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #ff6b35;
+            border-radius: 3px;
+        }
+
+        /* Loading State */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100px;
+            color: #666;
+        }
+
+        .spinner {
+            width: 30px;
+            height: 30px;
+            border: 3px solid #333;
+            border-top: 3px solid #ff6b35;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Connection Status */
+        .status-indicator {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #00ff41;
+        }
+
+        .status-indicator.disconnected {
+            background: #ff4444;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="header">
+            <div class="status-indicator" id="statusIndicator"></div>
+            <h1>🎮 MINEDEATH</h1>
+            <p>Spectator Control Panel</p>
+        </div>
+
+        <!-- Progress Bar Section -->
+        <div class="progress-section">
+            <div class="progress-header">
+                <span class="progress-title">🎁 Grand Drop</span>
+                <span class="countdown" id="countdown">--:--</span>
+            </div>
+            <div class="progress-container">
+                <div class="progress-bar" id="progressBar">
+                    <div class="progress-text" id="progressText">0 / 1000</div>
+                </div>
+            </div>
+            <div class="multiplier" id="multiplier" style="display: none;">
+                ⚡ POWER MULTIPLIER: x2
+            </div>
+        </div>
+
+        <!-- Actions Section -->
+        <div class="actions-section">
+            <div class="section-title">💎 PREMIUM ACTIONS (Bits)</div>
+            <div class="actions-container" id="bitsActions">
+                <div class="loading">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+
+            <div class="section-title">🎉 FUN ACTIONS (Points)</div>
+            <div class="actions-container" id="pointsActions">
+                <div class="loading">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Activity Feed -->
+        <div class="activity-section">
+            <div class="activity-header">📊 Recent Activity</div>
+            <div class="activity-feed" id="activityFeed">
+                <!-- Activity items will be added here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let gameState = {
+            actions: {
+                bits: [],
+                points: []
+            },
+            grandDrop: {
+                current: 0,
+                target: 1000,
+                timeLeft: 3600,
+                multiplier: 1,
+                pointsRatio: 1000
+            },
+            activity: [],
+            connected: false
+        };
+
+        let wsConnection = null;
+        let countdownInterval = null;
+
+        // Initialize the extension
+        function initializeExtension() {
+            console.log('🎮 Initializing Minedeath Extension');
+            
+            connectWebSocket();
+            loadInitialData();
+            startCountdown();
+            
+            // Mock data for development (remove in production)
+            if (window.location.hostname === 'localhost' || !window.Twitch) {
+                loadMockData();
+            }
+        }
+
+        // WebSocket Connection
+        function connectWebSocket() {
+            const wsUrl = 'wss://minedeath-twitch-backend.up.railway.app/ws';
+            
+            try {
+                wsConnection = new WebSocket(wsUrl);
+                
+                wsConnection.onopen = function() {
+                    console.log('✅ WebSocket connected');
+                    updateConnectionStatus(true);
+                };
+                
+                wsConnection.onmessage = function(event) {
+                    const data = JSON.parse(event.data);
+                    handleWebSocketMessage(data);
+                };
+                
+                wsConnection.onclose = function() {
+                    console.log('❌ WebSocket disconnected');
+                    updateConnectionStatus(false);
+                    
+                    // Reconnect after 5 seconds
+                    setTimeout(connectWebSocket, 5000);
+                };
+                
+                wsConnection.onerror = function(error) {
+                    console.error('WebSocket error:', error);
+                    updateConnectionStatus(false);
+                };
+            } catch (error) {
+                console.error('Failed to connect WebSocket:', error);
+                updateConnectionStatus(false);
+            }
+        }
+
+        // Handle WebSocket messages
+        function handleWebSocketMessage(data) {
+            switch (data.type) {
+                case 'actions_update':
+                    gameState.actions = data.actions;
+                    renderActions();
+                    break;
+                    
+                case 'grand_drop_update':
+                    gameState.grandDrop = { ...gameState.grandDrop, ...data.grandDrop };
+                    updateProgressBar();
+                    break;
+                    
+                case 'activity_update':
+                    if (data.activity.paymentType === 'bits') {
+                        addActivityItem(data.activity);
+                    }
+                    break;
+                    
+                case 'full_state':
+                    gameState = { ...gameState, ...data.state };
+                    renderAll();
+                    break;
+            }
+        }
+
+        // Load initial data
+        async function loadInitialData() {
+            try {
+                const response = await fetch('https://minedeath-twitch-backend.up.railway.app/api/state');
+                const data = await response.json();
+                
+                gameState = { ...gameState, ...data };
+                renderAll();
+            } catch (error) {
+                console.error('Failed to load initial data:', error);
+            }
+        }
+
+        // Render everything
+        function renderAll() {
+            renderActions();
+            updateProgressBar();
+            renderActivityFeed();
+        }
+
+        // Render actions
+        function renderActions() {
+            renderActionSection('bitsActions', gameState.actions.bits, 'bits');
+            renderActionSection('pointsActions', gameState.actions.points, 'points');
+        }
+
+        function renderActionSection(containerId, actions, type) {
+            const container = document.getElementById(containerId);
+            
+            if (!actions || actions.length === 0) {
+                container.innerHTML = '<div style="text-align: center; color: #666; padding: 20px;">No actions available</div>';
+                return;
+            }
+            
+            container.innerHTML = actions.map(action => `
+                <div class="action-item ${type}" onclick="purchaseAction('${action.id}', '${type}')">
+                    <div class="action-name">${action.name}</div>
+                    <div class="action-cost">${action.cost} ${type === 'bits' ? 'Bits' : 'Points'}</div>
+                    <div class="action-description">${action.description || ''}</div>
+                </div>
+            `).join('');
+        }
+
+        // Purchase action
+        async function purchaseAction(actionId, type) {
+            console.log(`Purchasing action: ${actionId} (${type})`);
+            
+            // In a real Twitch extension, this would use Twitch API
+            // For now, we'll simulate the purchase
+            if (window.Twitch && window.Twitch.ext) {
+                // Real Twitch extension purchase logic
+                if (type === 'bits') {
+                    window.Twitch.ext.bits.useBits('minedeath_action_' + actionId);
+                } else {
+                    // Handle channel points through your backend
+                    await fetch('https://minedeath-twitch-backend.up.railway.app/api/purchase', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            type: 'points',
+                            actionId: actionId,
+                            userId: window.Twitch.ext.viewer.id
+                        })
+                    });
+                }
+            } else {
+                // Mock purchase for development
+                mockPurchase(actionId, type);
+            }
+        }
+
+        // Update progress bar
+        function updateProgressBar() {
+            const { current, target, multiplier } = gameState.grandDrop;
+            const progressBar = document.getElementById('progressBar');
+            const progressText = document.getElementById('progressText');
+            const multiplierEl = document.getElementById('multiplier');
+            
+            const percentage = Math.min((current / target) * 100, 100);
+            const isOverflow = current > target;
+            
+            progressBar.style.width = percentage + '%';
+            progressBar.className = isOverflow ? 'progress-bar overflow' : 'progress-bar';
+            
+            progressText.textContent = `${current} / ${target}`;
+            
+            if (multiplier > 1) {
+                multiplierEl.style.display = 'block';
+                multiplierEl.textContent = `⚡ POWER MULTIPLIER: x${multiplier}`;
+            } else {
+                multiplierEl.style.display = 'none';
+            }
+        }
+
+        // Start countdown timer
+        function startCountdown() {
+            countdownInterval = setInterval(() => {
+                if (gameState.grandDrop.timeLeft > 0) {
+                    gameState.grandDrop.timeLeft--;
+                    updateCountdownDisplay();
+                } else {
+                    // Reset timer (this would be handled by backend in real implementation)
+                    gameState.grandDrop.timeLeft = 3600;
+                }
+            }, 1000);
+        }
+
+        function updateCountdownDisplay() {
+            const minutes = Math.floor(gameState.grandDrop.timeLeft / 60);
+            const seconds = gameState.grandDrop.timeLeft % 60;
+            document.getElementById('countdown').textContent = 
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        // Activity feed
+        function addActivityItem(activity) {
+            gameState.activity.unshift(activity);
+            
+            // Keep only last 20 items
+            if (gameState.activity.length > 20) {
+                gameState.activity = gameState.activity.slice(0, 20);
+            }
+            
+            renderActivityFeed();
+        }
+
+        function renderActivityFeed() {
+            const feed = document.getElementById('activityFeed');
+            
+            if (gameState.activity.length === 0) {
+                feed.innerHTML = '<div style="text-align: center; color: #666; padding: 20px;">No recent activity</div>';
+                return;
+            }
+            
+            feed.innerHTML = gameState.activity.map(item => `
+                <div class="activity-item">
+                    <span class="activity-user">${item.username}</span> spent 
+                    <span class="activity-cost">${item.cost} bits</span> on 
+                    <span class="activity-action">${item.actionName}</span>
+                </div>
+            `).join('');
+        }
+
+        // Connection status
+        function updateConnectionStatus(connected) {
+            gameState.connected = connected;
+            const indicator = document.getElementById('statusIndicator');
+            indicator.className = connected ? 'status-indicator' : 'status-indicator disconnected';
+        }
+
+        // Mock data for development
+        function loadMockData() {
+            gameState.actions.bits = [
+                { id: 'spawn_dragon', name: 'Spawn Dragon', cost: 1000, description: 'Unleash chaos upon all players' },
+                { id: 'lightning_strike', name: 'Lightning Strike', cost: 500, description: 'Strike a random player with lightning' },
+                { id: 'diamond_armor', name: 'Diamond Armor Drop', cost: 750, description: 'Drop diamond armor in the center' },
+                { id: 'spawn_creepers', name: 'Creeper Army', cost: 300, description: 'Spawn 5 creepers around players' }
+            ];
+            
+            gameState.actions.points = [
+                { id: 'spawn_chicken', name: 'Spawn Chicken', cost: 100, description: 'Add a friendly chicken' },
+                { id: 'play_sound', name: 'Play Random Sound', cost: 50, description: 'Play a silly sound effect' },
+                { id: 'change_weather', name: 'Toggle Weather', cost: 200, description: 'Change the weather' },
+                { id: 'spawn_pig', name: 'Spawn Pig', cost: 75, description: 'Add a pig to the world' }
+            ];
+            
+            gameState.grandDrop = {
+                current: 350,
+                target: 1000,
+                timeLeft: 2847,
+                multiplier: 1,
+                pointsRatio: 1000
+            };
+            
+            gameState.activity = [
+                { username: 'Viewer123', cost: 500, actionName: 'Lightning Strike' },
+                { username: 'GameFan99', cost: 300, actionName: 'Creeper Army' },
+                { username: 'DragonSlayer', cost: 1000, actionName: 'Spawn Dragon' }
+            ];
+            
+            renderAll();
+        }
+
+        function mockPurchase(actionId, type) {
+            const action = gameState.actions[type].find(a => a.id === actionId);
+            if (action) {
+                const activity = {
+                    username: 'TestUser' + Math.floor(Math.random() * 1000),
+                    cost: action.cost,
+                    actionName: action.name
+                };
+                
+                if (type === 'bits') {
+                    addActivityItem(activity);
+                    gameState.grandDrop.current += action.cost;
+                } else {
+                    gameState.grandDrop.current += Math.floor(action.cost / gameState.grandDrop.pointsRatio);
+                }
+                
+                updateProgressBar();
+            }
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', initializeExtension);
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (wsConnection) {
+                wsConnection.close();
+            }
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+            }
+        });
+    </script>
+</body>
+</html>
